@@ -3,11 +3,12 @@ replicaCount: 1
 
 # Docker image details
 image:
-  repository: cogentaiam.azurecr.io/${config.serviceName}  # Replaced dynamically
+  repository: me-central2-docker.pkg.dev/vbhcai/am-coding-registry/${config.serviceName}  # Replaced dynamically
   tag: ${commitHash10}                                       # Overridden in Jenkins with short Git SHA                                     # Pre-created secret in the namespace
   pullPolicy: IfNotPresent
-imagePullSecrets:
-  - name: acr-secret
+
+# imagePullSecrets:
+  # - name: acr-secret
 
 containerSecurityContext:
   enabled: false
