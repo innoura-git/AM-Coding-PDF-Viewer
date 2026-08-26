@@ -1,0 +1,33 @@
+serviceName: pdf-viewer-service
+
+environment: PRODUCTION               # Deployment environment (all caps as requested)
+namespace: am-prod     # Kubernetes namespace for deployment
+temporal:
+  taskQueue:
+    enabled: false
+
+ci:
+  language: java                       # java | python | react | node
+  buildTool: maven                    # maven | gradle | pip | poetry | npm | yarn
+  configFiles:                        # List of config files relevant for app setup (generic)
+  needsRepoSecrets: true              # Whether Nexus or private repo credentials are needed
+  runTests: true                     # Run unit tests
+  runCodeScan: true                  # Run static code analysis
+  scanTool: sonar                    # sonar | bandit | flake8 | eslint
+  coverageThreshold: 80              # Minimum code coverage %
+  runJarScan: true                   # Only for Java; scan JAR for vulnerabilities
+  triggerCD: true                   # Trigger CD pipeline after successful CI
+  enableKeyVaultInjection: false       # ✅ NEW: Enable Key Vault URL injection
+
+cd:
+  deployment:
+    isDockerDefault: true            # Use "Dockerfile" if true; else use dockerfileName below
+    dockerfileName: CustomDockerfile # Used if isDockerDefault is false
+    deploymentMode: helm             # Options: "helm" or "manual"
+    manifestFile: deployment/manifest.yaml     # Manifest file used in manual deployment mode
+
+  helm:
+    chartPath: /home/cicd-user/cogentai-am-prod  # Relative path to the Helm chart
+    valuesFile: deployment/values_prod.yaml
+    atomic: true                    # Enable atomic upgrade (rollback on failure)
+    timeout: 350s                   # Helm operation timeout (in seconds)

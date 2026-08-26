@@ -1,0 +1,128 @@
+# Number of pod replicas
+replicaCount: 1
+
+# Docker image details
+image:
+  repository: cogentaiam.azurecr.io/${config.serviceName}  # Replaced dynamically
+  tag: ${commitHash10}                                       # Overridden in Jenkins with short Git SHA                                     # Pre-created secret in the namespace
+  pullPolicy: IfNotPresent
+imagePullSecrets:
+  - name: acr-secret
+
+containerSecurityContext:
+  enabled: false
+  config:
+    privileged: true
+    capabilities:
+      add:
+        - NET_ADMIN
+
+# Kubernetes service configuration
+service:
+  name: ${config.serviceName}
+  type: ClusterIP
+  port: 8888
+  targetPort: 8888
+
+  prometheus:
+    enabled: true
+    path: /communication/actuator/prometheus
+    port: 8888
+
+initContainers:
+  enabled: false
+# Deployment configuration
+deploymentNameSuffix: "abcdef"  # Set dynamically via Jenkins
+namespace: am-prod
+httpRoute:
+  enabled: false
+
+# Git traceability
+git:
+  author: ${gitAuthor}
+  commitHash: ${commitHash10}
+
+# Resource requests and limits
+resources:
+  limits:
+    cpu: 512m
+    memory: 1Gi
+  requests:
+    cpu: 512m
+    memory: 1Gi
+
+volume:
+  enabled: false                # Set false if you want to use emptyDir instead
+  claimName: ""
+# Horizontal Pod Autoscaler configuration
+autoscaling:
+  enabled: true
+  minReplicas: 1
+  maxReplicas: 2
+  targetCPUUtilizationPercentage: 70
+
+worker:
+  enable: false
+
+# Container config
+container:
+  port: 8888
+  probes:
+    enabled: false  # Enable if readiness/liveness probes are implemented
+
+# Service Account settings
+serviceAccount:
+  create: false
+  name: default
+
+# Ingress configuration
+env:
+  enabled: false
+
+
+# Optional custom probe configurations (leave empty unless needed)
+livenessProbe: {}
+readinessProbe: {}
+probes:
+  enabled: false
+
+podDistributionBudget:
+  enabled: false
+  minAvailable: 1
+  maxUnavailable: null
+
+# Ingress config
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
+    nginx.ingress.kubernetes.io/enable-cors: "true"
+    nginx.ingress.kubernetes.io/cors-allow-origin: "https://abhahospital.encipherhealth.com, https://am.api.encipherhealth.com"
+    nginx.ingress.kubernetes.io/use-regex: "true"
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: "600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "600"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "600"
+    nginx.ingress.kubernetes.io/cors-allow-headers: "*, Authorization, X-App,X-Project-Id"
+    nginx.org/client-max-body-size: "100m"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/proxy-body-size: "100m"
+    cert-manager.io/cluster-issuer: "pdf-viewer"   # 👈 Use your ClusterIssuer
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      more_set_headers "Content-Security-Policy: default-src * 'unsafe-inline' 'unsafe-eval' data: blob:;";
+      more_set_headers "X-Frame-Options: ALLOWALL";
+      more_set_headers "X-Content-Type-Options: nosniff";
+      more_set_headers "Referrer-Policy: strict-origin-when-cross-origin";
+      more_set_headers "Permissions-Policy: geolocation=(), microphone=()";
+  hosts:
+    - host: ampdfviewer.encipherhealth.com
+      paths:
+        - path: /(.*)
+          pathType: Prefix
+          service:
+            name: pdf-viewer-service
+            port: 8888
+
+  tls:
+    - hosts:
+        - ampdfviewer.encipherhealth.com
+      secretName: pdf-viewer   # 👈 cert-manager will create/populate this
