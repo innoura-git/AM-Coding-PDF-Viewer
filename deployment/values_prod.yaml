@@ -3,11 +3,12 @@ replicaCount: 1
 
 # Docker image details
 image:
-  repository: cogentaiam.azurecr.io/${config.serviceName}  # Replaced dynamically
-  tag: ${commitHash10}                                       # Overridden in Jenkins with short Git SHA                                     # Pre-created secret in the namespace
+  repository: me-central2-docker.pkg.dev/vbhcai/am-coding-registry/${config.serviceName} # Replaced dynamically
+  tag: ${commitHash10} # Overridden in Jenkins with short Git SHA                                     # Pre-created secret in the namespace
   pullPolicy: IfNotPresent
-imagePullSecrets:
-  - name: acr-secret
+
+# imagePullSecrets:
+# - name: acr-secret
 
 containerSecurityContext:
   enabled: false
@@ -32,7 +33,7 @@ service:
 initContainers:
   enabled: false
 # Deployment configuration
-deploymentNameSuffix: "abcdef"  # Set dynamically via Jenkins
+deploymentNameSuffix: "abcdef" # Set dynamically via Jenkins
 namespace: am-prod
 httpRoute:
   enabled: false
@@ -52,7 +53,7 @@ resources:
     memory: 1Gi
 
 volume:
-  enabled: false                # Set false if you want to use emptyDir instead
+  enabled: false # Set false if you want to use emptyDir instead
   claimName: ""
 # Horizontal Pod Autoscaler configuration
 autoscaling:
@@ -68,7 +69,7 @@ worker:
 container:
   port: 8888
   probes:
-    enabled: false  # Enable if readiness/liveness probes are implemented
+    enabled: false # Enable if readiness/liveness probes are implemented
 
 # Service Account settings
 serviceAccount:
@@ -78,7 +79,6 @@ serviceAccount:
 # Ingress configuration
 env:
   enabled: false
-
 
 # Optional custom probe configurations (leave empty unless needed)
 livenessProbe: {}
@@ -106,7 +106,7 @@ ingress:
     nginx.org/client-max-body-size: "100m"
     nginx.ingress.kubernetes.io/ssl-redirect: "true"
     nginx.ingress.kubernetes.io/proxy-body-size: "100m"
-    cert-manager.io/cluster-issuer: "pdf-viewer"   # 👈 Use your ClusterIssuer
+    cert-manager.io/cluster-issuer: "pdf-viewer" # 👈 Use your ClusterIssuer
     nginx.ingress.kubernetes.io/configuration-snippet: |
       more_set_headers "Content-Security-Policy: default-src * 'unsafe-inline' 'unsafe-eval' data: blob:;";
       more_set_headers "X-Frame-Options: ALLOWALL";
@@ -125,4 +125,4 @@ ingress:
   tls:
     - hosts:
         - ampdfviewer.encipherhealth.com
-      secretName: pdf-viewer   # 👈 cert-manager will create/populate this
+      secretName: pdf-viewer # 👈 cert-manager will create/populate this
